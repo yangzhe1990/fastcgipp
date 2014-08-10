@@ -19,6 +19,8 @@ int main() {
 		auto g = std::bind(f, std::bind(std::move<std::unique_ptr<int> &>, std::move(p_int)));
 		g();
 		std::function<void()> gg = yz::utils::make_movable_function<void()>(std::move(g));
+		decltype(g) gggg = std::move(g);
+		gggg();
 		gg();
 		g();
 

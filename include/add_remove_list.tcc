@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2013, Yang Zhe <yangzhe1990@gmail.com>, All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3.0 of
+ * the License, or (at your option) any later version.	This library
+ * is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details. You should have received a copy of the
+ * GNU Lesser General Public License along with this library.
+ */
+
 #ifdef _YZ_FASTCGIPP_ADD_REMOVE_LIST_HPP
 #ifndef _YZ_FASTCGIPP_ADD_REMOVE_LIST_TCC
 #define _YZ_FASTCGIPP_ADD_REMOVE_LIST_TCC
@@ -34,7 +48,7 @@ namespace yz {
 		void add_remove_list<T, handle_saver, true>::erase(typename add_remove_list<T, handle_saver, true>::handle_t handle) {
 			index_T pos = *handle;
 			if (pos == npos)
-				throw std::runtime_error("erasing already deleted object");
+				throw std::logic_error("erasing already deleted object");
 			size_t last_pos = container.size() - 1;
 			// exception may be thrown from this section if the implementation of T's dtor or swap may throw
 			handle_saver::save(container[pos], npos);
@@ -105,7 +119,7 @@ namespace yz {
 		void add_remove_list<T, index_T, false>::erase(typename add_remove_list<T, index_T, false>::handle_t handle) {
 			index_T pos = *handle;
 			if (pos == npos)
-				throw std::runtime_error("erasing already deleted object");
+				throw std::logic_error("erasing already deleted object");
 			size_t last_pos = container.size() - 1;
 			{
 				// exception may be thrown from this section if the implementation of T's dtor or swap may throw
@@ -133,59 +147,6 @@ namespace yz {
 
 		template <class T, typename index_T>
 		const index_T add_remove_list<T, index_T, false>::npos = -1;
-
-		template <class id_T>
-		id_T unbounded_id_generator<id_T>::allocate_id() {
-			id_t ret;
-			size_t size = free_id_pool.size();
-			if (size == 0) {
-				ret = n;
-				++n;
-				free_id_pos.push_back(npos);
-				// well, assume 4 is more aggressive than the reallocation factor
-				if (free_id_pool.size() < free_id_pool.capacity() / 4)
-					free_id_pool.shrink_to_fit();
-			}
-			else {
-				ret = free_id_pool.back();
-				free_id_pool.pop_back();
-				free_id_pos[ret] = npos;
-			}
-			return ret;
-		}
-
-		template <class id_T>
-		void unbounded_id_generator<id_T>::return_id(id_T id) {
-			if (id != n - 1) {
-				size_t pos = free_id_pool.size();
-				free_id_pool.push_back(id);
-				free_id_pos[id] = pos;
-			}
-			else {
-				int last = id - 1;
-				while (last >= 0 && free_id_pos[last] != npos) {
-					size_t pos = free_id_pos[last];
-					free_id_pos[
-						free_id_pool[pos]
-						= free_id_pool.back()] = pos;
-					free_id_pool.pop_back();
-					--last;
-				}
-				n = last + 1;
-				free_id_pos.resize(n);
-
-				if (free_id_pos.size() < free_id_pos.capacity() / 4)
-					free_id_pos.shrink_to_fit();
-			}
-		}
-
-		template <class id_T>
-		id_T unbounded_id_generator<id_T>::get_n() {
-			return n;
-		}
-
-		template <class id_T>
-		const size_t unbounded_id_generator<id_T>::npos = -1;
 	}
 }
 
